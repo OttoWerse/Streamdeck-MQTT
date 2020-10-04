@@ -27,9 +27,8 @@ function connected(jsn) {
         console.log('%c%s', 'color: white; background: red; font-size: 13px;', '[app.js]propertyInspectorDidDisappear:');
     });
 
-    //TODO: Unique client id
-    client = new Paho.MQTT.Client("192.169.0.203", 9001, "elgatotest");
-    client.connect();
+
+
 };
 
 /** ACTIONS */
@@ -82,9 +81,7 @@ const action = {
     },
 
     onKeyUp: function (jsn) {
-        message = new Paho.MQTT.Message(jsn.payload.settings.payload);
-        message.destinationName = jsn.payload.settings.topic;
-        client.send(message);
+        this.mqttclient.send(jsn.payload.settings.topic, jsn.payload.settings.payload);
     },
 
     onSendToPlugin: function (jsn) {
@@ -129,6 +126,17 @@ const action = {
     saveVariables: function (jsn) {
         if (this.settings && this.settings.hasOwnProperty('mynameinput')) {
             $SD.api.setTitle(jsn.context, this.settings.mynameinput);
+        }
+
+        if (this.mqttclient) {
+            this.mqttclient.disconnect();
+        }
+        //TODO: use true UUID instead of Math.random()
+        this.mqttclient = new Paho.MQTT.Client(jsn.payload.settings.broker, 9001, "Elgato " + Math.random());
+        try {
+            this.mqttclient.connect();
+        } catch (err) {
+            console.log("Connection Error" + err);
         }
     },
 
